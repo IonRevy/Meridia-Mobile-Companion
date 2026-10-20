@@ -263,7 +263,7 @@ function CloudBackground({ darkMode }) {
 const initialState = {
   screen: 'join', name: '', emoji: fallbackEmojis[Math.floor(Math.random() * fallbackEmojis.length)], avatarChosen: false, steamAvatar: '', color: 1, customHue: 28, customValue: 100, themeMode: 'light',
   colorPopup: false, steamPopup: false, style: 0, qty: [5, 4, 2, 3, 1, 2], rolled: false, rolling: false,
-  diceFaces: [1, 1], roll: 7, selectedPlayer: 0, give: [0, 0, 0, 0, 0, 0],
+  diceFaces: [1, 1], roll: 7, selectedPlayer: 0, selectedPlayers: [], give: [0, 0, 0, 0, 0, 0],
   want: [0, 0, 0, 0, 0, 0],
 };
 
@@ -415,9 +415,19 @@ function App() {
     if (state[key][index] >= (key === 'want' ? 10 : 9)) return;
     changeQuantity(key, index, 1);
   };
-  const choosePlayer = (index) => {
-    set({ selectedPlayer: index, screen: 'game', give: Array(6).fill(0), want: Array(6).fill(0) });
-    toast(`Trade offer sent to ${players[index].name}`);
+  const toggleTradePlayer = (index) => {
+    const selectedPlayers = state.selectedPlayers.includes(index)
+      ? state.selectedPlayers.filter((selectedIndex) => selectedIndex !== index)
+      : [...state.selectedPlayers, index];
+    set({ selectedPlayers });
+  };
+  const sendTradeOffer = () => {
+    const recipients = state.selectedPlayers.map((index) => players[index]).filter(Boolean);
+    if (!recipients.length) return;
+    set({ selectedPlayer: state.selectedPlayers[0], selectedPlayers: [], screen: 'game', give: Array(6).fill(0), want: Array(6).fill(0) });
+    toast(recipients.length === 1
+      ? `Trade offer sent to ${recipients[0].name}`
+      : `Trade offer sent to ${recipients.length} players`);
   };
   const build = (index) => {
     const cost = buildCosts[index];
@@ -428,7 +438,7 @@ function App() {
   const confirmTrade = () => {
     if (!state.give.some(Boolean) || !state.want.some(Boolean)) { toast('Add resources to both sides'); return; }
     if (state.give.some((amount, i) => amount > state.qty[i])) { toast('You do not have those resources'); return; }
-    goto('tradePlayers');
+    set({ screen: 'tradePlayers', selectedPlayers: [] });
   };
 
   let screen;
@@ -444,10 +454,10 @@ function App() {
     </section>;
   } else if (state.screen === 'lobby') {
     screen = <section className="screen lobby-screen"><p className="lobby-waiting">Waiting for players...</p>
-      <div className="lobby-stage"><div className="lobby-mark"><div className="lobby-meridia-logo" role="img" aria-label="Meridia" /></div>
+      <div className="lobby-stage"><div className="lobby-mark"><div className="lobby-meridia-logo" role="img" aria-label="Meridia" /></div><div className="lobby-players">
         <div className="player p1"><div className="player-float"><PlayerAvatar name={state.name} color={state.color} customHue={state.customHue} customValue={state.customValue} emoji={state.emoji} src={state.steamAvatar} /><span>{state.name}</span></div></div>
         {players.map((p, i) => <div className={`player p${i + 2}`} key={p.name}><div className="player-float"><PlayerAvatar name={p.name} color={p.color} customHue={state.customHue} customValue={state.customValue} emoji={p.emoji} /><span>{p.name}</span></div></div>)}
-      </div><div className="joined"><b>6 Players Joined</b></div><Action className="action lobby-action" onClick={startGame}>Start Game</Action>
+      </div></div><div className="joined"><b>6 Players Joined</b></div><Action className="action lobby-action" onClick={startGame}>Start Game</Action>
     </section>;
   } else if (state.screen === 'loading') {
     screen = <section className="screen loading"><div className="loading-glass"><div className="loading-logo"><div className="loading-meridia-logo" role="img" aria-label="Meridia" /></div><h2>Generating Your World</h2><p>This may take a moment...</p><div className="honeycomb" role="img" aria-label="Loading animation">{Array.from({ length: 7 }, (_, index) => <div key={index} />)}</div><div className="progress"><i /></div></div></section>;
@@ -459,7 +469,7 @@ function App() {
     screen = <section className="screen trackpad-screen"><ResourceCards qty={state.qty} dark={state.themeMode === 'dark'} onThemeChange={toggleTheme} /><div className="roll-display-wrap"><div className="roll-display build-trackpad" aria-hidden="true" /></div>
       <div className="actions"><Action className="action secondary" onClick={() => goto('game')}>Cancel</Action><Action onClick={() => goto('build')}>Next</Action></div></section>;
   } else if (state.screen === 'build') {
-    screen = <section className="screen build-screen"><ResourceCards qty={state.qty} dark={state.themeMode === 'dark'} onThemeChange={toggleTheme} /><div className="cards build-options scroll-box">{buildOptions.map(([image, title, cost], i) => <button type="button" className="choice-card" key={title} onClick={() => build(i)}><img className="choice-art" src={assetUrl(image)} alt="" /><span className="choice-copy"><strong>{title}</strong><span>{cost}</span></span></button>)}</div><div className="actions"><Action onClick={() => goto('game')}>Cancel</Action></div></section>;
+    screen = <section className="screen build-screen"><ResourceCards qty={state.qty} dark={state.themeMode === 'dark'} onThemeChange={toggleTheme} /><div className="cards build-options page-scroll-list">{buildOptions.map(([image, title, cost], i) => <button type="button" className="choice-card" key={title} onClick={() => build(i)}><img className="choice-art" src={assetUrl(image)} alt="" /><span className="choice-copy"><strong>{title}</strong><span>{cost}</span></span></button>)}</div><div className="actions"><Action onClick={() => goto('game')}>Cancel</Action></div></section>;
   } else if (state.screen === 'trade') {
     const tradeBox = (title, key) => (
       <section className="trade-box" key={key}>
@@ -497,7 +507,14 @@ function App() {
       <div className="actions"><Action className="action secondary" onClick={() => goto('game')}>Cancel</Action><Action onClick={confirmTrade}>Next</Action></div>
     </section>;
   } else if (state.screen === 'tradePlayers') {
-    screen = <section className="screen trade-player-screen"><div className="cards trade-player-list scroll-box">{players.map((p, i) => <button type="button" className="choice-card compact" key={p.name} onClick={() => choosePlayer(i)}><PlayerAvatar name={p.name} color={p.color} customHue={state.customHue} customValue={state.customValue} emoji={p.emoji} /><span className="choice-copy"><strong>{p.name}</strong></span><img className="send-icon" src={sendIcon} alt="" /></button>)}</div><div className="actions"><Action onClick={() => goto('trade')}>← Back</Action></div></section>;
+    screen = <section className="screen trade-player-screen"><p className="trade-player-prompt">Select player/s.</p><div className="cards trade-player-list page-scroll-list">{players.map((p, i) => {
+      const selected = state.selectedPlayers.includes(i);
+      return <label className={`choice-card compact player-choice${selected ? ' selected' : ''}`} key={p.name}>
+        <PlayerAvatar name={p.name} color={p.color} customHue={state.customHue} customValue={state.customValue} emoji={p.emoji} />
+        <span className="choice-copy"><strong>{p.name}</strong></span>
+        <input className="player-choice-checkbox" type="checkbox" checked={selected} onChange={() => toggleTradePlayer(i)} aria-label={`Select ${p.name}`} />
+      </label>;
+    })}</div><div className="actions"><Action onClick={() => goto('trade')}>← Back</Action><button type="button" className="action trade-send-action" onClick={sendTradeOffer} disabled={!state.selectedPlayers.length} aria-label="Send trade offer"><img src={sendIcon} alt="" /></button></div></section>;
   } else {
     screen = <section className="screen"><Header title="Meridia" /><div className="home-mark">⌁</div><p className="hero-copy">Build a world together.</p><Action onClick={() => goto('join')}>Join Game</Action></section>;
   }
