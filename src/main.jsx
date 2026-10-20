@@ -11,7 +11,46 @@ import cloud1 from '../assets/Cloud 1.svg?url';
 import cloud2 from '../assets/Cloud 2.svg?url';
 import cloud3 from '../assets/Cloud 3.svg?url';
 import defaultUserIcon from '../assets/default-user.svg?url';
+import blueprintIcon from '../assets/blueprint.svg';
+import buildCityImage from '../assets/build-city.png';
+import buildRoadImage from '../assets/build-road.png';
+import buildSettlementImage from '../assets/build-settlement.png';
+import buildTownImage from '../assets/build-town.png';
+import dicePairImage from '../assets/dice-pair.png';
+import joinHouseImage from '../assets/join-house.png';
+import nextIcon from '../assets/next.svg';
+import resourceCoalIcon from '../assets/resource-coal.svg';
+import resourceFishIcon from '../assets/resource-fish.svg';
+import resourceMeatIcon from '../assets/resource-meat.svg';
+import resourceStoneIcon from '../assets/resource-stone.svg';
+import resourceWheatIcon from '../assets/resource-wheat.svg';
+import resourceWoodIcon from '../assets/resource-wood.svg';
+import sendIcon from '../assets/send.svg';
+import tradeIcon from '../assets/trade.svg';
 import '../style.css';
+
+const assetUrls = {
+  'blueprint.svg': blueprintIcon,
+  'build-city.png': buildCityImage,
+  'build-road.png': buildRoadImage,
+  'build-settlement.png': buildSettlementImage,
+  'build-town.png': buildTownImage,
+  'dice-pair.png': dicePairImage,
+  'join-house.png': joinHouseImage,
+  'next.svg': nextIcon,
+  'resource-coal.svg': resourceCoalIcon,
+  'resource-fish.svg': resourceFishIcon,
+  'resource-meat.svg': resourceMeatIcon,
+  'resource-stone.svg': resourceStoneIcon,
+  'resource-wheat.svg': resourceWheatIcon,
+  'resource-wood.svg': resourceWoodIcon,
+  'send.svg': sendIcon,
+  'trade.svg': tradeIcon,
+};
+
+function assetUrl(filename) {
+  return assetUrls[filename];
+}
 
 const SwatchGrid = styled.div`
   display: flex;
@@ -260,7 +299,7 @@ function StyleArrow({ direction, onClick }) {
 }
 function ResourceCards({ qty, dark, onThemeChange }) {
   return <section className="inventory"><h2>Your Inventory</h2><ThemeSwitch dark={dark} onChange={onThemeChange} embedded /><div className="resource-row">
-    {resources.map(([icon, name], i) => <div className="resource" key={name}><img className="resource-img" src={`assets/${icon}`} alt={name} /><span className="count">{qty[i]}</span></div>)}
+    {resources.map(([icon, name], i) => <div className="resource" key={name}><img className="resource-img" src={assetUrl(icon)} alt={name} /><span className="count">{qty[i]}</span></div>)}
   </div></section>;
 }
 function TradeInventoryPicker({ mode, qty, selected, onSelect, dark, onThemeChange }) {
@@ -273,7 +312,7 @@ function TradeInventoryPicker({ mode, qty, selected, onSelect, dark, onThemeChan
         const available = giving ? Math.max(0, qty[i] - selected[i]) : Math.max(0, 10 - selected[i]);
         const maxed = giving ? available === 0 : selected[i] >= 10;
         return <button type="button" className={`resource trade-picker-button${maxed ? ' is-maxed' : ''}`} key={name} disabled={maxed} onClick={() => onSelect(i)} aria-label={`Add ${name} to ${giving ? 'I’ll Give' : 'I Want'}${giving ? `, ${available} available` : `, ${selected[i]} selected`}`}>
-          <img className="resource-img" src={`assets/${icon}`} alt="" />
+          <img className="resource-img" src={assetUrl(icon)} alt="" />
           <span className="count">{giving ? available : selected[i]}</span>
           <span className="trade-picker-plus" aria-hidden="true">＋</span>
         </button>;
@@ -400,7 +439,7 @@ function App() {
       <h2 className="section-label">Empire Color</h2>
       <SwatchGrid className="swatches">{colors.map((entry, i) => <ColorSwatch type="button" key={entry[1]} className="color-swatch" $selected={state.color === i} $dark={state.themeMode === 'dark'} $fill={i === 4 ? 'conic-gradient(from 0deg, #f33, #ff0, #3c6, #09f, #a3f, #f33)' : entry[0]} onClick={() => chooseColor(i)} aria-label={i === 4 ? 'Custom color' : `${entry[1]} color`} aria-pressed={state.color === i} />)}</SwatchGrid>
       <h2 className="section-label">Settlement Style</h2>
-      <div className="style-card"><StyleArrow direction="left" onClick={() => changeStyle(-1)} /><div><img className="style-house" src="assets/join-house.png" alt="Settlement preview" /><div className="style-dots">● ● ● ● ● ● ●</div><div className="style-name">{styles[state.style][1]}</div></div><StyleArrow direction="right" onClick={() => changeStyle(1)} /></div>
+      <div className="style-card"><StyleArrow direction="left" onClick={() => changeStyle(-1)} /><div><img className="style-house" src={joinHouseImage} alt="Settlement preview" /><div className="style-dots">● ● ● ● ● ● ●</div><div className="style-name">{styles[state.style][1]}</div></div><StyleArrow direction="right" onClick={() => changeStyle(1)} /></div>
       <Action onClick={() => { const name = playerInput.trim(); if (!name) { toast('Enter your name first'); return; } set({ name, avatarChosen: true, emoji: state.avatarChosen ? state.emoji : fallbackEmojis[Math.floor(Math.random() * fallbackEmojis.length)], screen: 'lobby' }); }}>Join Game</Action>
     </section>;
   } else if (state.screen === 'lobby') {
@@ -414,13 +453,13 @@ function App() {
     screen = <section className="screen loading"><div className="loading-glass"><div className="loading-logo"><div className="loading-meridia-logo" role="img" aria-label="Meridia" /></div><h2>Generating Your World</h2><p>This may take a moment...</p><div className="honeycomb" role="img" aria-label="Loading animation">{Array.from({ length: 7 }, (_, index) => <div key={index} />)}</div><div className="progress"><i /></div></div></section>;
   } else if (state.screen === 'game' || state.screen === 'after') {
     screen = <section className="screen game-screen"><ResourceCards qty={state.qty} dark={state.themeMode === 'dark'} onThemeChange={toggleTheme} /><div className="roll-display-wrap"><div className="roll-display">{state.rolled ? <div className="roll-result roll-display-content"><div className="dice-face-pair">{state.diceFaces.map((face, index) => <DieFace key={index} value={face} className="roll-die-face" />)}</div><div className="total">{state.roll}</div></div> : <div className="roll-pre-roll-content roll-display-content">{state.rolling ? <><div className="dice-face-pair">{state.diceFaces.map((face, index) => <DieFace key={index} value={face} className="roll-die-face" />)}</div><p className="rolling-label" aria-live="polite">Rolling...</p><div className="total rolling-total" aria-live="polite">{state.roll}</div></> : <div className="board-hint">Explore the board<br />and plan your next move.</div>}</div>}</div></div>
-      {!state.rolled ? <button type="button" className="roll-button" onClick={rollDice} disabled={state.rolling} aria-label="Roll dice"><img src="assets/dice-pair.png" alt="Roll the dice" /></button> : <div className="turn-actions"><button type="button" className="turn-btn trade" onClick={() => set({ give: Array(6).fill(0), want: Array(6).fill(0), screen: 'trade' })} aria-label="Trade"><img src="assets/trade.svg" alt="" /></button><button type="button" className="turn-btn build" onClick={() => set({ screen: 'trackpad' })} aria-label="Build"><img src="assets/blueprint.svg" alt="" /></button><button type="button" className="turn-btn end" onClick={() => { set({ rolled: false }); toast('Turn ended'); }} aria-label="End turn"><img src="assets/next.svg" alt="" /></button></div>}
+      {!state.rolled ? <button type="button" className="roll-button" onClick={rollDice} disabled={state.rolling} aria-label="Roll dice"><img src={dicePairImage} alt="Roll the dice" /></button> : <div className="turn-actions"><button type="button" className="turn-btn trade" onClick={() => set({ give: Array(6).fill(0), want: Array(6).fill(0), screen: 'trade' })} aria-label="Trade"><img src={tradeIcon} alt="" /></button><button type="button" className="turn-btn build" onClick={() => set({ screen: 'trackpad' })} aria-label="Build"><img src={blueprintIcon} alt="" /></button><button type="button" className="turn-btn end" onClick={() => { set({ rolled: false }); toast('Turn ended'); }} aria-label="End turn"><img src={nextIcon} alt="" /></button></div>}
     </section>;
   } else if (state.screen === 'trackpad') {
     screen = <section className="screen trackpad-screen"><ResourceCards qty={state.qty} dark={state.themeMode === 'dark'} onThemeChange={toggleTheme} /><div className="roll-display-wrap"><div className="roll-display build-trackpad" aria-hidden="true" /></div>
       <div className="actions"><Action className="action secondary" onClick={() => goto('game')}>Cancel</Action><Action onClick={() => goto('build')}>Next</Action></div></section>;
   } else if (state.screen === 'build') {
-    screen = <section className="screen build-screen"><ResourceCards qty={state.qty} dark={state.themeMode === 'dark'} onThemeChange={toggleTheme} /><div className="cards build-options scroll-box">{buildOptions.map(([image, title, cost], i) => <button type="button" className="choice-card" key={title} onClick={() => build(i)}><img className="choice-art" src={`assets/${image}`} alt="" /><span className="choice-copy"><strong>{title}</strong><span>{cost}</span></span></button>)}</div><div className="actions"><Action onClick={() => goto('game')}>Cancel</Action></div></section>;
+    screen = <section className="screen build-screen"><ResourceCards qty={state.qty} dark={state.themeMode === 'dark'} onThemeChange={toggleTheme} /><div className="cards build-options scroll-box">{buildOptions.map(([image, title, cost], i) => <button type="button" className="choice-card" key={title} onClick={() => build(i)}><img className="choice-art" src={assetUrl(image)} alt="" /><span className="choice-copy"><strong>{title}</strong><span>{cost}</span></span></button>)}</div><div className="actions"><Action onClick={() => goto('game')}>Cancel</Action></div></section>;
   } else if (state.screen === 'trade') {
     const tradeBox = (title, key) => (
       <section className="trade-box" key={key}>
@@ -438,7 +477,7 @@ function App() {
                 onClick={() => changeQuantity(key, index, -1)}
                 aria-label={`Remove ${name} from ${title}`}
               >
-                <img className="resource-img" src={`assets/${image}`} alt="" />
+                <img className="resource-img" src={assetUrl(image)} alt="" />
                 <span>{name}</span>
               </button>
             ))
@@ -458,7 +497,7 @@ function App() {
       <div className="actions"><Action className="action secondary" onClick={() => goto('game')}>Cancel</Action><Action onClick={confirmTrade}>Next</Action></div>
     </section>;
   } else if (state.screen === 'tradePlayers') {
-    screen = <section className="screen trade-player-screen"><div className="cards trade-player-list scroll-box">{players.map((p, i) => <button type="button" className="choice-card compact" key={p.name} onClick={() => choosePlayer(i)}><PlayerAvatar name={p.name} color={p.color} customHue={state.customHue} customValue={state.customValue} emoji={p.emoji} /><span className="choice-copy"><strong>{p.name}</strong></span><img className="send-icon" src="assets/send.svg" alt="" /></button>)}</div><div className="actions"><Action onClick={() => goto('trade')}>← Back</Action></div></section>;
+    screen = <section className="screen trade-player-screen"><div className="cards trade-player-list scroll-box">{players.map((p, i) => <button type="button" className="choice-card compact" key={p.name} onClick={() => choosePlayer(i)}><PlayerAvatar name={p.name} color={p.color} customHue={state.customHue} customValue={state.customValue} emoji={p.emoji} /><span className="choice-copy"><strong>{p.name}</strong></span><img className="send-icon" src={sendIcon} alt="" /></button>)}</div><div className="actions"><Action onClick={() => goto('trade')}>← Back</Action></div></section>;
   } else {
     screen = <section className="screen"><Header title="Meridia" /><div className="home-mark">⌁</div><p className="hero-copy">Build a world together.</p><Action onClick={() => goto('join')}>Join Game</Action></section>;
   }
