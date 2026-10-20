@@ -10,6 +10,7 @@ import dieFace6 from '../assets/Die Face 6.svg?raw';
 import cloud1 from '../assets/Cloud 1.svg?url';
 import cloud2 from '../assets/Cloud 2.svg?url';
 import cloud3 from '../assets/Cloud 3.svg?url';
+import defaultUserIcon from '../tmp/default user.svg?url';
 import '../style.css';
 
 const SwatchGrid = styled.div`
@@ -66,8 +67,8 @@ const ColorSwatch = styled.button`
   @media (prefers-reduced-motion: reduce) { transition: none; }
 `;
 
-function ThemeSwitch({ dark, onChange }) {
-  return <ThemeSwitchStyles>
+function ThemeSwitch({ dark, onChange, embedded = false }) {
+  return <ThemeSwitchStyles className={embedded ? 'theme-switch embedded' : 'theme-switch'}>
     <label id="theme-toggle-button" title={dark ? 'Switch to light mode' : 'Switch to dark mode'}>
       <input id="theme-toggle-input" type="checkbox" role="switch" checked={dark} onChange={onChange} aria-label="Dark mode" aria-checked={dark} />
       <svg viewBox="0 0 69.667 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -97,7 +98,7 @@ function ThemeSwitch({ dark, onChange }) {
 const ThemeSwitchStyles = styled.div`
   position: fixed;
   z-index: 30;
-  top: calc(env(safe-area-inset-top) + 51px);
+  top: calc(env(safe-area-inset-top) + 10px);
   right: 15px;
   display: flex;
   width: 70px;
@@ -131,9 +132,9 @@ const resources = [
   ['resource-stone.svg', 'Stone'], ['resource-fish.svg', 'Fish'],
 ];
 const colors = [
-  ['#f3485a', 'Coral', '🧑🏻'], ['#159efa', 'Azure', '🧑🏽'],
-  ['#ffd13f', 'Gold', '🧑🏼‍🦱'], ['#60b92d', 'Leaf', '👩🏻'],
-  ['#bd40cf', 'Violet', '👩🏽'], ['#ff9100', 'Custom', '🧑🏾'],
+  ['#f3485a', 'Red', '🧑🏻'], ['#159efa', 'Blue', '🧑🏽'],
+  ['#ffd13f', 'Yellow', '🧑🏼‍🦱'], ['#60b92d', 'Green', '👩🏻'],
+  ['#ff9100', 'Custom', '🧑🏾'],
 ];
 const styles = [
   ['🏡', 'Classic'], ['🏠', 'Timber'], ['🏰', 'Castle'], ['🛖', 'Coastal'],
@@ -143,8 +144,8 @@ const players = [
   { name: 'Sarah', color: 1, emoji: '👩🏻', kind: 'settlement' },
   { name: 'Mike', color: 2, emoji: '🧑🏼‍🦱', kind: 'town' },
   { name: 'Emily', color: 3, emoji: '👩🏻', kind: 'road' },
-  { name: 'Alex', color: 4, emoji: '👩🏽', kind: 'town' },
-  { name: 'Taylor', color: 5, emoji: '🧑🏾', kind: 'ship' },
+  { name: 'Alex', color: 0, emoji: '👩🏽', kind: 'town' },
+  { name: 'Taylor', color: 2, emoji: '🧑🏾', kind: 'ship' },
 ];
 const buildOptions = [
   ['build-settlement.png', 'Settlement', '1 wood, 1 coal, 1 wheat'],
@@ -153,7 +154,7 @@ const buildOptions = [
   ['build-road.png', 'Road', '1 wood, 1 coal'],
 ];
 const buildCosts = [[1, 1, 0, 1, 0, 0], [2, 2, 0, 2, 0, 0], [0, 3, 0, 0, 2, 0], [1, 0, 0, 1, 0, 0]];
-const avatarFiles = ['avatar-coral.jpg', 'avatar-cyan.jpg', 'avatar-gold.jpg', 'avatar-azure.jpg', 'avatar-violet.jpg', 'avatar-amber.jpg'];
+const fallbackEmojis = ['😀', '😎', '🦊', '🐼', '🐸', '🐯', '🐙', '🦉', '🐨', '🐻'];
 const dieFaceMarkup = [dieFace1, dieFace2, dieFace3, dieFace4, dieFace5, dieFace6].map((svg) => svg
   .replace(/^[\s\S]*?<svg[^>]*>/, '')
   .replace(/<\/svg>\s*$/, '')
@@ -221,8 +222,8 @@ function CloudBackground({ darkMode }) {
 }
 
 const initialState = {
-  screen: 'join', name: '', color: 1, customHue: 28, customValue: 100, themeMode: 'light',
-  colorPopup: false, style: 0, qty: [5, 4, 2, 3, 1, 2], rolled: false, rolling: false,
+  screen: 'join', name: '', emoji: fallbackEmojis[Math.floor(Math.random() * fallbackEmojis.length)], avatarChosen: false, steamAvatar: '', color: 1, customHue: 28, customValue: 100, themeMode: 'light',
+  colorPopup: false, steamPopup: false, style: 0, qty: [5, 4, 2, 3, 1, 2], rolled: false, rolling: false,
   diceFaces: [1, 1], roll: 7, selectedPlayer: 0, give: [0, 0, 0, 0, 0, 0],
   want: [0, 0, 0, 0, 0, 0],
 };
@@ -236,7 +237,7 @@ function customHex(hue, value, saturation = 100) {
   const rgb = h < 60 ? [chroma, x, 0] : h < 120 ? [x, chroma, 0] : h < 180 ? [0, chroma, x] : h < 240 ? [0, x, chroma] : h < 300 ? [x, 0, chroma] : [chroma, 0, x];
   return `#${rgb.map((part) => Math.round((part + min) * 255).toString(16).padStart(2, '0')).join('')}`;
 }
-function colorHex(index, hue, value) { return index === 5 ? customHex(hue, value) : colors[index][0]; }
+function colorHex(index, hue, value) { return index === 4 ? customHex(hue, value) : colors[index][0]; }
 function hueFromHex(hex) {
   const [r, g, b] = [1, 3, 5].map((offset) => parseInt(hex.slice(offset, offset + 2), 16) / 255);
   const max = Math.max(r, g, b); const min = Math.min(r, g, b); const d = max - min;
@@ -257,15 +258,15 @@ function StyleArrow({ direction, onClick }) {
     <span className="style-arrow-box" aria-hidden="true">{[0, 1].map((copy) => <span className="style-arrow-elem" key={copy}><svg viewBox="0 0 46 40"><path d="M46 20.038c0-.7-.3-1.5-.8-2.1l-16-17c-1.1-1-3.2-1.4-4.4-.3-1.2 1.1-1.2 3.3 0 4.4l11.3 11.9H3c-1.7 0-3 1.3-3 3s1.3 3 3 3h33.1l-11.3 11.9c-1 1-1.2 3.3 0 4.4 1.2 1.1 3.3.8 4.4-.3l16-17c.5-.5.8-1.1.8-1.9z" /></svg></span>)}</span>
   </button>;
 }
-function ResourceCards({ qty }) {
-  return <section className="inventory"><h2>Your Inventory</h2><div className="resource-row">
+function ResourceCards({ qty, dark, onThemeChange }) {
+  return <section className="inventory"><h2>Your Inventory</h2><ThemeSwitch dark={dark} onChange={onThemeChange} embedded /><div className="resource-row">
     {resources.map(([icon, name], i) => <div className="resource" key={name}><img className="resource-img" src={`assets/${icon}`} alt={name} /><span className="count">{qty[i]}</span></div>)}
   </div></section>;
 }
-function TradeInventoryPicker({ mode, qty, selected, onSelect }) {
+function TradeInventoryPicker({ mode, qty, selected, onSelect, dark, onThemeChange }) {
   const giving = mode === 'give';
   return <section className={`inventory trade-inventory ${giving ? 'give-picker' : 'want-picker'}`}>
-    {giving && <h2>Your Inventory</h2>}
+    {giving && <><h2>Your Inventory</h2><ThemeSwitch dark={dark} onChange={onThemeChange} embedded /></>}
     <p>{giving ? 'Tap a resource to add it to I’ll Give.' : 'Tap a resource you want in return.'}</p>
     <div className="resource-row">
       {resources.map(([icon, name], i) => {
@@ -280,10 +281,9 @@ function TradeInventoryPicker({ mode, qty, selected, onSelect }) {
     </div>
   </section>;
 }
-function PlayerAvatar({ name, color, customHue, customValue, src }) {
-  const portrait = src || avatarFiles[color];
-  return <div className="avatar" style={{ '--accent': colorHex(color, customHue, customValue) }}>
-    <img className="avatar-portrait" src={`assets/${portrait}`} alt={`${name} avatar`} />
+function PlayerAvatar({ name, color, customHue, customValue, emoji = '🙂', src = '' }) {
+  return <div className="avatar" style={{ '--accent': colorHex(color, customHue, customValue) }} role="img" aria-label={`${name} avatar`}>
+    {src ? <img className="avatar-portrait" src={src} alt="" /> : <span className="avatar-emoji" aria-hidden="true">{emoji}</span>}
   </div>;
 }
 
@@ -291,17 +291,20 @@ function App() {
   const [state, setState] = useState(initialState);
   const [toastMessage, setToastMessage] = useState('');
   const [playerInput, setPlayerInput] = useState('');
+  const [steamUsername, setSteamUsername] = useState('');
 
   const set = (patch) => setState((current) => ({ ...current, ...patch }));
   const color = colorHex(state.color, state.customHue, state.customValue);
 
   useEffect(() => {
-    const hue = state.color === 5 ? state.customHue : hueFromHex(color);
+    const hue = state.color === 4 ? state.customHue : hueFromHex(color);
     document.documentElement.style.setProperty('--theme-hue', `${hue}`);
     document.documentElement.style.setProperty('--wave-hue-shift', `${hue - 201}deg`);
     document.documentElement.style.setProperty('--custom-color', customHex(state.customHue, state.customValue));
     document.documentElement.style.setProperty('--theme-color-30', customHex(hue, 30, 50));
     document.documentElement.dataset.theme = state.themeMode;
+    const browserThemeColor = state.themeMode === 'dark' ? customHex(hue, 26, 24) : customHex(hue, 78, 56);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', browserThemeColor);
   }, [state.color, state.customHue, state.customValue, state.themeMode, color]);
 
   useEffect(() => {
@@ -327,15 +330,34 @@ function App() {
   }, [state.rolling]);
 
   useEffect(() => {
-    const closeOnEscape = (event) => { if (event.key === 'Escape') setState((current) => ({ ...current, colorPopup: false })); };
+    const closeOnEscape = (event) => { if (event.key === 'Escape') setState((current) => ({ ...current, colorPopup: false, steamPopup: false })); };
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, []);
   const toast = (message) => setToastMessage(message);
+  const toggleTheme = () => set({ themeMode: state.themeMode === 'dark' ? 'light' : 'dark' });
+  const hasInventory = ['game', 'after', 'trackpad', 'build', 'trade'].includes(state.screen);
   const goto = (screen) => set({ screen });
   const closeColorPopup = () => set({ colorPopup: false });
+  const saveSteamAvatar = async () => {
+    const username = steamUsername.trim();
+    if (!username) {
+      set({ emoji: fallbackEmojis[Math.floor(Math.random() * fallbackEmojis.length)], avatarChosen: true, steamAvatar: '', steamPopup: false });
+      return;
+    }
+    const endpoint = import.meta.env.VITE_STEAM_PROFILE_API_URL;
+    if (!endpoint) { toast('Steam avatar lookup is not configured.'); return; }
+    try {
+      const response = await fetch(`${endpoint}?username=${encodeURIComponent(username)}`);
+      const result = await response.json();
+      if (!response.ok || !result.avatarUrl) throw new Error(result.error || 'Steam profile not found.');
+      set({ steamAvatar: result.avatarUrl, steamPopup: false });
+    } catch (error) {
+      toast(error.message || 'Could not load that Steam profile.');
+    }
+  };
   const chooseColor = (index) => {
-    set({ color: index, colorPopup: index === 5 });
+    set({ color: index, colorPopup: index === 4 });
   };
   const changeStyle = (direction) => set({ style: (state.style + direction + styles.length) % styles.length });
   const startGame = () => {
@@ -373,33 +395,32 @@ function App() {
   let screen;
   if (state.screen === 'join') {
     screen = <section className="screen join-screen">
-      <Header title="Join Game" subtitle="Choose your player details." />
-      <div className="character-avatar-placeholder" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></svg></div>
-      <label className="field"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></svg><input maxLength="18" placeholder="Player 1" value={playerInput} onChange={(e) => setPlayerInput(e.target.value)} aria-label="Player name" /></label>
+      <Header title="Meridia" />
+      <div className="join-name-row"><button type="button" className="join-player-icon" onClick={() => set({ steamPopup: true })} aria-label="Set Steam profile picture">{state.steamAvatar ? <PlayerAvatar name="Player" color={state.color} customHue={state.customHue} customValue={state.customValue} src={state.steamAvatar} /> : state.avatarChosen ? <PlayerAvatar name="Player" color={state.color} customHue={state.customHue} customValue={state.customValue} emoji={state.emoji} /> : <img className="default-user-icon" src={defaultUserIcon} alt="" />}<span className="player-icon-plus" aria-hidden="true">+</span></button><label className="field"><input maxLength="18" placeholder="Name" value={playerInput} onChange={(e) => setPlayerInput(e.target.value)} aria-label="Player name" /></label></div>
       <h2 className="section-label">Empire Color</h2>
-      <SwatchGrid className="swatches">{colors.map((entry, i) => <ColorSwatch type="button" key={entry[1]} className="color-swatch" $selected={state.color === i} $dark={state.themeMode === 'dark'} $fill={i === 5 ? 'conic-gradient(from 0deg, #f33, #ff0, #3c6, #09f, #a3f, #f33)' : entry[0]} onClick={() => chooseColor(i)} aria-label={i === 5 ? 'Custom color' : `${entry[1]} color`} aria-pressed={state.color === i} />)}</SwatchGrid>
+      <SwatchGrid className="swatches">{colors.map((entry, i) => <ColorSwatch type="button" key={entry[1]} className="color-swatch" $selected={state.color === i} $dark={state.themeMode === 'dark'} $fill={i === 4 ? 'conic-gradient(from 0deg, #f33, #ff0, #3c6, #09f, #a3f, #f33)' : entry[0]} onClick={() => chooseColor(i)} aria-label={i === 4 ? 'Custom color' : `${entry[1]} color`} aria-pressed={state.color === i} />)}</SwatchGrid>
       <h2 className="section-label">Settlement Style</h2>
       <div className="style-card"><StyleArrow direction="left" onClick={() => changeStyle(-1)} /><div><img className="style-house" src="assets/join-house.png" alt="Settlement preview" /><div className="style-dots">● ● ● ● ● ● ●</div><div className="style-name">{styles[state.style][1]}</div></div><StyleArrow direction="right" onClick={() => changeStyle(1)} /></div>
-      <Action onClick={() => { const name = playerInput.trim(); if (!name) { toast('Choose a player name first'); return; } set({ name, screen: 'lobby' }); }}>Join Game</Action>
+      <Action onClick={() => { const name = playerInput.trim(); if (!name) { toast('Enter your name first'); return; } set({ name, avatarChosen: true, emoji: state.avatarChosen ? state.emoji : fallbackEmojis[Math.floor(Math.random() * fallbackEmojis.length)], screen: 'lobby' }); }}>Join Game</Action>
     </section>;
   } else if (state.screen === 'lobby') {
-    screen = <section className="screen"><Header title="Game Lobby" subtitle="Waiting for players..." />
+    screen = <section className="screen lobby-screen"><p className="lobby-waiting">Waiting for players...</p>
       <div className="lobby-stage"><div className="lobby-mark"><div className="lobby-meridia-logo" role="img" aria-label="Meridia" /></div>
-        <div className="player p1"><PlayerAvatar name={state.name} color={state.color} customHue={state.customHue} customValue={state.customValue} src={avatarFiles[0]} />{state.name}</div>
-        {players.map((p, i) => <div className={`player p${i + 2}`} key={p.name}><PlayerAvatar name={p.name} color={p.color} customHue={state.customHue} customValue={state.customValue} />{p.name}</div>)}
-      </div><div className="joined">♙ &nbsp; <b>6 Players Joined</b></div><Action className="action lobby-action" onClick={startGame}>Start Game</Action>
+        <div className="player p1"><div className="player-float"><PlayerAvatar name={state.name} color={state.color} customHue={state.customHue} customValue={state.customValue} emoji={state.emoji} src={state.steamAvatar} /><span>{state.name}</span></div></div>
+        {players.map((p, i) => <div className={`player p${i + 2}`} key={p.name}><div className="player-float"><PlayerAvatar name={p.name} color={p.color} customHue={state.customHue} customValue={state.customValue} emoji={p.emoji} /><span>{p.name}</span></div></div>)}
+      </div><div className="joined"><b>6 Players Joined</b></div><Action className="action lobby-action" onClick={startGame}>Start Game</Action>
     </section>;
   } else if (state.screen === 'loading') {
-    screen = <section className="screen loading"><div className="loading-glass"><div className="loading-mark"><div className="loading-meridia-logo" role="img" aria-label="Meridia" /></div><h2>Generating Your World</h2><p>This may take a moment...</p><div className="honeycomb" role="img" aria-label="Loading animation">{Array.from({ length: 7 }, (_, index) => <div key={index} />)}</div><div className="progress"><i /></div></div></section>;
+    screen = <section className="screen loading"><div className="loading-glass"><div className="loading-logo"><div className="loading-meridia-logo" role="img" aria-label="Meridia" /></div><h2>Generating Your World</h2><p>This may take a moment...</p><div className="honeycomb" role="img" aria-label="Loading animation">{Array.from({ length: 7 }, (_, index) => <div key={index} />)}</div><div className="progress"><i /></div></div></section>;
   } else if (state.screen === 'game' || state.screen === 'after') {
-    screen = <section className="screen game-screen"><ResourceCards qty={state.qty} /><div className="roll-display-wrap"><div className="roll-display">{state.rolled ? <div className="roll-result roll-display-content"><div className="dice-face-pair">{state.diceFaces.map((face, index) => <DieFace key={index} value={face} className="roll-die-face" />)}</div><div className="total">{state.roll}</div></div> : <div className="roll-pre-roll-content roll-display-content">{state.rolling ? <><div className="dice-face-pair">{state.diceFaces.map((face, index) => <DieFace key={index} value={face} className="roll-die-face" />)}</div><p className="rolling-label" aria-live="polite">Rolling...</p><div className="total rolling-total" aria-live="polite">{state.roll}</div></> : <div className="board-hint">Explore the board<br />and plan your next move.</div>}</div>}</div></div>
-      {!state.rolled ? <button type="button" className="roll-button" onClick={rollDice} disabled={state.rolling} aria-label="Roll dice"><img src="assets/dice-pair.png" alt="Roll the dice" /></button> : <div className="turn-actions"><button type="button" className="turn-btn trade" onClick={() => set({ give: Array(6).fill(0), want: Array(6).fill(0), screen: 'trade' })}><span className="icon">⇄</span>Trade</button><button type="button" className="turn-btn build" onClick={() => set({ screen: 'trackpad' })}><span className="icon">⚒</span>Build</button><button type="button" className="turn-btn end" onClick={() => { set({ rolled: false }); toast('Turn ended'); }}><span className="icon">↪</span>End Turn</button></div>}
+    screen = <section className="screen game-screen"><ResourceCards qty={state.qty} dark={state.themeMode === 'dark'} onThemeChange={toggleTheme} /><div className="roll-display-wrap"><div className="roll-display">{state.rolled ? <div className="roll-result roll-display-content"><div className="dice-face-pair">{state.diceFaces.map((face, index) => <DieFace key={index} value={face} className="roll-die-face" />)}</div><div className="total">{state.roll}</div></div> : <div className="roll-pre-roll-content roll-display-content">{state.rolling ? <><div className="dice-face-pair">{state.diceFaces.map((face, index) => <DieFace key={index} value={face} className="roll-die-face" />)}</div><p className="rolling-label" aria-live="polite">Rolling...</p><div className="total rolling-total" aria-live="polite">{state.roll}</div></> : <div className="board-hint">Explore the board<br />and plan your next move.</div>}</div>}</div></div>
+      {!state.rolled ? <button type="button" className="roll-button" onClick={rollDice} disabled={state.rolling} aria-label="Roll dice"><img src="assets/dice-pair.png" alt="Roll the dice" /></button> : <div className="turn-actions"><button type="button" className="turn-btn trade" onClick={() => set({ give: Array(6).fill(0), want: Array(6).fill(0), screen: 'trade' })} aria-label="Trade"><img src="assets/trade.svg" alt="" /></button><button type="button" className="turn-btn build" onClick={() => set({ screen: 'trackpad' })} aria-label="Build"><img src="assets/blueprint.svg" alt="" /></button><button type="button" className="turn-btn end" onClick={() => { set({ rolled: false }); toast('Turn ended'); }} aria-label="End turn"><img src="assets/next.svg" alt="" /></button></div>}
     </section>;
   } else if (state.screen === 'trackpad') {
-    screen = <section className="screen trackpad-screen"><ResourceCards qty={state.qty} /><div className="roll-display-wrap"><div className="roll-display build-trackpad" aria-hidden="true" /></div>
+    screen = <section className="screen trackpad-screen"><ResourceCards qty={state.qty} dark={state.themeMode === 'dark'} onThemeChange={toggleTheme} /><div className="roll-display-wrap"><div className="roll-display build-trackpad" aria-hidden="true" /></div>
       <div className="actions"><Action className="action secondary" onClick={() => goto('game')}>Cancel</Action><Action onClick={() => goto('build')}>Next</Action></div></section>;
   } else if (state.screen === 'build') {
-    screen = <section className="screen"><ResourceCards qty={state.qty} /><Header title="Build" subtitle="Choose what to build." /><div className="cards build-options">{buildOptions.map(([image, title, cost], i) => <button type="button" className="choice-card" key={title} onClick={() => build(i)}><img className="choice-art" src={`assets/${image}`} alt="" /><span className="choice-copy"><strong>{title}</strong><span>{cost}</span></span></button>)}</div><div className="actions"><Action onClick={() => goto('game')}>Cancel</Action></div></section>;
+    screen = <section className="screen build-screen"><ResourceCards qty={state.qty} dark={state.themeMode === 'dark'} onThemeChange={toggleTheme} /><div className="cards build-options scroll-box">{buildOptions.map(([image, title, cost], i) => <button type="button" className="choice-card" key={title} onClick={() => build(i)}><img className="choice-art" src={`assets/${image}`} alt="" /><span className="choice-copy"><strong>{title}</strong><span>{cost}</span></span></button>)}</div><div className="actions"><Action onClick={() => goto('game')}>Cancel</Action></div></section>;
   } else if (state.screen === 'trade') {
     const tradeBox = (title, key) => (
       <section className="trade-box" key={key}>
@@ -428,28 +449,29 @@ function App() {
         </div>
       </section>
     );
-    screen = <section className="screen trade-screen"><Header title="Trade" subtitle="Choose what you’ll give and what you want." />
-      <TradeInventoryPicker mode="give" qty={state.qty} selected={state.give} onSelect={(i) => addTradeResource('give', i)} />
+    screen = <section className="screen trade-screen">
+      <TradeInventoryPicker mode="give" qty={state.qty} selected={state.give} onSelect={(i) => addTradeResource('give', i)} dark={state.themeMode === 'dark'} onThemeChange={toggleTheme} />
       {tradeBox('I’ll Give', 'give')}
       <div className="trade-direction" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m8 16 4 4 4-4M8 8l4-4 4 4" /></svg></div>
       {tradeBox('I Want', 'want')}
-      <TradeInventoryPicker mode="want" qty={state.qty} selected={state.want} onSelect={(i) => addTradeResource('want', i)} />
+      <TradeInventoryPicker mode="want" qty={state.qty} selected={state.want} onSelect={(i) => addTradeResource('want', i)} dark={state.themeMode === 'dark'} onThemeChange={toggleTheme} />
       <div className="actions"><Action className="action secondary" onClick={() => goto('game')}>Cancel</Action><Action onClick={confirmTrade}>Next</Action></div>
     </section>;
   } else if (state.screen === 'tradePlayers') {
-    screen = <section className="screen"><Header title="Trade" subtitle="Select a player to trade with." /><div className="cards trade-player-list">{players.map((p, i) => <button type="button" className="choice-card compact" key={p.name} onClick={() => choosePlayer(i)}><PlayerAvatar name={p.name} color={p.color} customHue={state.customHue} customValue={state.customValue} src={`trade-${p.name.toLowerCase()}.jpg`} /><span className="choice-copy"><strong>{p.name}</strong></span><span className="chevron">›</span></button>)}</div><div className="actions"><Action onClick={() => goto('trade')}>← Back</Action></div></section>;
+    screen = <section className="screen trade-player-screen"><div className="cards trade-player-list scroll-box">{players.map((p, i) => <button type="button" className="choice-card compact" key={p.name} onClick={() => choosePlayer(i)}><PlayerAvatar name={p.name} color={p.color} customHue={state.customHue} customValue={state.customValue} emoji={p.emoji} /><span className="choice-copy"><strong>{p.name}</strong></span><img className="send-icon" src="assets/send.svg" alt="" /></button>)}</div><div className="actions"><Action onClick={() => goto('trade')}>← Back</Action></div></section>;
   } else {
     screen = <section className="screen"><Header title="Meridia" /><div className="home-mark">⌁</div><p className="hero-copy">Build a world together.</p><Action onClick={() => goto('join')}>Join Game</Action></section>;
   }
 
   return <>
     <CloudBackground darkMode={state.themeMode === 'dark'} />
-    <ThemeSwitch dark={state.themeMode === 'dark'} onChange={() => set({ themeMode: state.themeMode === 'dark' ? 'light' : 'dark' })} />
+    {!hasInventory && state.screen !== 'loading' && <ThemeSwitch dark={state.themeMode === 'dark'} onChange={toggleTheme} />}
     {screen}
     {state.colorPopup && <div className="color-modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) closeColorPopup(); }}><section className="custom-color-popup" role="dialog" aria-modal="true" aria-label="Custom empire color"><button type="button" className="popup-close" onClick={closeColorPopup} aria-label="Close">×</button>
       <div className="custom-color-preview swatch-shape" style={{ '--preview-color': customHex(state.customHue, state.customValue) }} role="img" aria-label="Selected custom color preview" />
       <input className="color-slider hue-slider" type="range" min="0" max="359" value={state.customHue} onChange={(e) => set({ customHue: +e.target.value })} aria-label="Hue" />
     </section></div>}
+    {state.steamPopup && <div className="color-modal-backdrop" onClick={(event) => { if (event.target === event.currentTarget) set({ steamPopup: false }); }}><section className="custom-color-popup steam-popup" role="dialog" aria-modal="true" aria-label="Steam profile picture"><button type="button" className="popup-close" onClick={() => set({ steamPopup: false })} aria-label="Close">×</button><input className="steam-input" value={steamUsername} onChange={(event) => setSteamUsername(event.target.value)} placeholder="Steam Username" autoComplete="off" /><button type="button" className="action steam-submit" onClick={saveSteamAvatar}>{steamUsername.trim() ? 'Save' : 'Pick random emoji'}</button></section></div>}
     {toastMessage && <div className="toast" role="status">{toastMessage}</div>}
   </>;
 }

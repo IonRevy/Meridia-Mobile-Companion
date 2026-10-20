@@ -227,14 +227,27 @@ button {
 }
 .player .avatar {
   margin: auto auto 5px;
+}
+.avatar-emoji {
+  display: block;
+  line-height: 1;
+  font-size: 39px;
+  filter: drop-shadow(0 2px 2px #0004);
+}
+.player-float {
+  width: max-content;
+  min-width: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   will-change: transform;
 }
-.player.p1 .avatar { animation: lobby-drift-1 7.8s ease-in-out -1.2s infinite; }
-.player.p2 .avatar { animation: lobby-drift-2 9.1s ease-in-out -4.3s infinite; }
-.player.p3 .avatar { animation: lobby-drift-3 8.4s ease-in-out -2.7s infinite; }
-.player.p4 .avatar { animation: lobby-drift-4 10.2s ease-in-out -6.1s infinite; }
-.player.p5 .avatar { animation: lobby-drift-5 8.9s ease-in-out -3.5s infinite; }
-.player.p6 .avatar { animation: lobby-drift-6 9.7s ease-in-out -5.2s infinite; }
+.player.p1 .player-float { animation: lobby-drift-1 7.8s ease-in-out -1.2s infinite; }
+.player.p2 .player-float { animation: lobby-drift-2 9.1s ease-in-out -4.3s infinite; }
+.player.p3 .player-float { animation: lobby-drift-3 8.4s ease-in-out -2.7s infinite; }
+.player.p4 .player-float { animation: lobby-drift-4 10.2s ease-in-out -6.1s infinite; }
+.player.p5 .player-float { animation: lobby-drift-5 8.9s ease-in-out -3.5s infinite; }
+.player.p6 .player-float { animation: lobby-drift-6 9.7s ease-in-out -5.2s infinite; }
 @keyframes lobby-drift-1 {
   0%,100% { transform: translate(0,0) rotate(0); }
   28% { transform: translate(8px,-7px) rotate(2deg); }
@@ -266,31 +279,31 @@ button {
   73% { transform: translate(8px,6px) rotate(1.5deg); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .player .avatar { animation: none; will-change: auto; }
+  .player-float { animation: none !important; will-change: auto; }
 }
 .player.p1 {
-  top: 4%;
+  top: 3%;
   left: 50%;
   transform: translateX(-50%);
 }
 .player.p2 {
-  top: 24%;
-  left: 3%;
+  top: 20%;
+  left: 7%;
 }
 .player.p3 {
-  top: 24%;
-  right: 3%;
+  top: 20%;
+  right: 7%;
 }
 .player.p4 {
-  bottom: 17%;
-  left: 3%;
+  top: 54%;
+  right: 5%;
 }
 .player.p5 {
-  bottom: 17%;
-  right: 3%;
+  top: 54%;
+  left: 5%;
 }
 .player.p6 {
-  bottom: 0;
+  top: 72%;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -486,6 +499,7 @@ button {
 .trade-slots {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
   min-height: 36px;
   overflow: visible;
@@ -1309,10 +1323,10 @@ html,body {
     transform: none;
   }
 }
-@media (max-width: 420px) {
+@media (max-width: 360px) {
   #app {
-    padding-left: max(16px, env(safe-area-inset-left));
-    padding-right: max(16px, env(safe-area-inset-right));
+    padding-left: 12px;
+    padding-right: 12px;
   }
 }
 /* Dark mode keeps the selected empire hue and uses its 30% value tint. */
@@ -1510,19 +1524,20 @@ html[data-theme="dark"] #app button:not(.color-swatch):not(.roll-button):not(.st
   padding: 4px 0;
 }
 .trade-token {
-  width: 78px;
-  min-height: 74px;
-  padding: 4px 5px;
+  width: 58px;
+  min-height: 58px;
+  padding: 3px 3px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 1px;
-  font-size: 11px;
+  font-size: 9px;
+  line-height: 1.05;
 }
 .trade-token .resource-img {
-  width: 40px;
-  height: 38px;
+  width: 28px;
+  height: 28px;
 }
 .trade-inventory {
   padding: 12px 12px 22px;
@@ -1904,6 +1919,152 @@ html[data-theme="dark"] .roll-die-face {
   background-size: 400px 400px;
   animation: sky-twinkle 7s ease-in-out 2s infinite;
 }
+
+/* Page scrolling stays inside an overflowing screen; the document itself stays fixed. */
+html, body {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+}
+body { padding: 0; }
+#app {
+  width: 100%;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
+}
+.screen {
+  width: 100%;
+  height: 100dvh;
+  min-height: 0;
+  max-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  padding: 6px 0 10px;
+}
+.screen.loading {
+  padding: calc(env(safe-area-inset-top) + 10px) 16px calc(env(safe-area-inset-bottom) + 12px);
+}
+.screen::-webkit-scrollbar { width: 5px; }
+.screen::-webkit-scrollbar-thumb { border-radius: 8px; background: color-mix(in srgb, var(--line) 45%, transparent); }
+.screen.trade-screen { overflow-y: auto; }
+.inventory { position: relative; }
+.lobby-waiting {
+  margin: 0 auto -8px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.theme-switch.embedded {
+  position: absolute;
+  top: 5px;
+  right: 8px;
+  z-index: 3;
+  width: 58px;
+  height: 37px;
+}
+.theme-switch.embedded #theme-toggle-button { width: 58px; height: 37px; }
+.inventory > h2, .trade-inventory > h2 { padding-right: 66px; }
+.join-screen .screen-head { margin-top: 8px; }
+.join-name-row { display: flex; align-items: center; gap: 12px; }
+.join-name-row .field { flex: 1; min-width: 0; }
+.join-player-icon {
+  position: relative;
+  flex: 0 0 66px;
+  width: 66px;
+  height: 66px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.join-player-icon .avatar { width: 58px; height: 58px; }
+.join-player-icon .avatar-emoji { font-size: 31px; }
+.default-user-icon { display: block; width: 58px; height: 58px; object-fit: contain; }
+.player-icon-plus {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--line);
+  font-size: 20px;
+  line-height: 1;
+}
+.join-screen .swatches { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); justify-items: center; gap: 4px; }
+.join-screen .color-swatch { margin: 8px 0; width: min(2.65em, 11vw); height: min(2.65em, 11vw); flex-basis: auto; }
+.loading-logo { position: relative; flex: none; width: clamp(112px, 28vw, 170px); aspect-ratio: 1; margin: 0 auto 18px; }
+.loading-logo .loading-meridia-logo { position: absolute; inset: 0; }
+.loading .honeycomb { margin: 22px auto 30px; }
+.turn-btn img { display: block; width: 58%; height: 58%; object-fit: contain; filter: none; }
+.send-icon { width: 42px; height: 42px; object-fit: contain; }
+.scroll-box {
+  flex: 0 0 clamp(220px, 52dvh, 460px);
+  height: clamp(220px, 52dvh, 460px);
+  min-height: 0;
+  max-height: clamp(220px, 52dvh, 460px);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  border: 2px solid color-mix(in srgb, var(--line) 78%, white);
+  border-radius: 22px;
+  padding: 12px;
+  background: var(--panel);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 70%), 0 8px 20px rgb(10 50 80 / 20%);
+  width: 100%;
+  flex-shrink: 1;
+}
+.build-options.scroll-box { flex: 0 0 clamp(220px, 52dvh, 460px); gap: 12px; }
+.trade-player-list.scroll-box { flex: 0 0 clamp(220px, 52dvh, 460px); gap: 12px; }
+.steam-popup h2, .steam-popup p { margin: 0; color: var(--ink); }
+.steam-input {
+  min-width: 0;
+  height: 50px;
+  padding: 0 14px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  color: var(--ink);
+  background: var(--panel-2);
+}
+.steam-submit { width: 100%; }
+html[data-theme="dark"] .steam-input { color: #f4f8fc; background: hsl(var(--theme-hue,204) 30% 15%); }
+@media (max-width: 380px) {
+  #app { padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right)); }
+  .join-screen .color-swatch { margin-inline: 0; }
+  .send-icon { width: 40px; height: 40px; }
+}
+/* Keep widget dismiss controls as a bare X, outside the raised-button styling. */
+#app button.popup-close:not(.color-swatch):not(.roll-button):not(.style-arrow):not(.generate-button),
+#app button.popup-close:not(.color-swatch):not(.roll-button):not(.style-arrow):not(.generate-button):hover,
+#app button.popup-close:not(.color-swatch):not(.roll-button):not(.style-arrow):not(.generate-button):active {
+  position: absolute !important;
+  top: 8px !important;
+  right: 12px !important;
+  z-index: 2;
+  width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--ink) !important;
+  font: 400 26px/1 Arial, sans-serif !important;
+  transform: none !important;
+}
+#app button.popup-close:not(.color-swatch):not(.roll-button):not(.style-arrow):not(.generate-button)::before { display: none !important; content: none !important; }
+html[data-theme="dark"] .scroll-box { background: hsl(var(--theme-hue,204) 30% 17% / 96%); border-color: hsl(var(--theme-hue,204) 38% 58%); }
 .cloud-background .meteor {
   display: none;
   position: absolute;
@@ -2013,4 +2174,87 @@ html[data-theme="dark"] .cloud-shape {
   .cloud-background .meteor {
     display: none;
   }
+}
+
+/* Keep page navigation controls on the same baseline as the post-roll row. */
+.screen > .actions,
+.trade-screen > .actions {
+  margin-top: auto;
+  padding: 4px 0 10px;
+}
+.screen > .action { margin-top: auto; margin-bottom: 10px; }
+
+/* The default portrait remains clickable without raised button chrome. */
+#app button.join-player-icon:not(.color-swatch):not(.roll-button):not(.style-arrow):not(.generate-button),
+#app button.join-player-icon:not(.color-swatch):not(.roll-button):not(.style-arrow):not(.generate-button):hover,
+#app button.join-player-icon:not(.color-swatch):not(.roll-button):not(.style-arrow):not(.generate-button):active {
+  position: relative !important;
+  width: 66px !important;
+  height: 66px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit !important;
+  filter: none !important;
+  transform: none !important;
+  transition: none !important;
+  clip-path: none !important;
+}
+#app button.join-player-icon:not(.color-swatch):not(.roll-button):not(.style-arrow):not(.generate-button)::before { display: none !important; content: none !important; }
+
+.lobby-screen { gap: 0; }
+.lobby-waiting {
+  display: flex;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  margin: 0 auto;
+  line-height: 1.2;
+}
+.lobby-screen .lobby-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 -2px;
+}
+.lobby-screen .joined {
+  flex: 0 0 auto;
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+.lobby-screen > .lobby-action {
+  flex: 0 0 58px;
+  margin: 0 0 10px !important;
+}
+.build-options.scroll-box {
+  height: clamp(160px, calc(100dvh - 350px), 440px);
+  max-height: clamp(160px, calc(100dvh - 350px), 440px);
+  flex-basis: clamp(160px, calc(100dvh - 350px), 440px);
+}
+.trade-player-list.scroll-box {
+  height: clamp(240px, calc(100dvh - 145px), 620px);
+  max-height: clamp(240px, calc(100dvh - 145px), 620px);
+  flex-basis: clamp(240px, calc(100dvh - 145px), 620px);
+}
+
+.lobby-screen .lobby-stage {
+  width: min(100%, 760px);
+  margin: 0 auto;
+}
+.build-screen > .build-options.scroll-box,
+.trade-player-screen > .trade-player-list.scroll-box {
+  flex: 1 1 0;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  margin: 12px auto;
+  padding: 16px 14px 18px;
+  align-self: stretch;
+  border-width: 2px;
+  border-style: solid;
+  border-color: var(--line);
+  background: var(--panel);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%), 0 6px 18px rgb(10 50 80 / 18%);
 }

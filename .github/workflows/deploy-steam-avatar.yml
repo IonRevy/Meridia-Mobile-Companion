@@ -1,0 +1,30 @@
+name: Deploy Steam avatar proxy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'workers/steam-avatar.js'
+      - 'wrangler.toml'
+      - '.github/workflows/deploy-steam-avatar.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+          secrets: |
+            STEAM_API_KEY
+        env:
+          STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
