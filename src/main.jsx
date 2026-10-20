@@ -10,7 +10,7 @@ import dieFace6 from '../assets/Die Face 6.svg?raw';
 import cloud1 from '../assets/Cloud 1.svg?url';
 import cloud2 from '../assets/Cloud 2.svg?url';
 import cloud3 from '../assets/Cloud 3.svg?url';
-import defaultUserIcon from '../tmp/default user.svg?url';
+import defaultUserIcon from '../assets/default-user.svg?url';
 import '../style.css';
 
 const SwatchGrid = styled.div`
