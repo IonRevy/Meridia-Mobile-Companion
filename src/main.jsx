@@ -10,7 +10,9 @@ import dieFace6 from '../assets/Die Face 6.svg?raw';
 import cloud1 from '../assets/Cloud 1.svg?url';
 import cloud2 from '../assets/Cloud 2.svg?url';
 import cloud3 from '../assets/Cloud 3.svg?url';
-import defaultUserIcon from '../assets/default-user.svg?url';
+import defaultUserIcon from '../assets/default-user.svg?raw';
+import leftArrowIcon from '../assets/arrow-left.svg?url';
+import rightArrowIcon from '../assets/arrow-right.svg?url';
 import blueprintIcon from '../assets/blueprint.svg';
 import buildCityImage from '../assets/build-city.png';
 import buildRoadImage from '../assets/build-road.png';
@@ -79,9 +81,11 @@ const ColorSwatch = styled.button`
   transition: transform .25s ease-in-out, box-shadow .25s ease-in-out;
   -webkit-tap-highlight-color: transparent;
 
-  &:hover {
-    transform: scale(1.35);
-    z-index: 4;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: scale(1.35);
+      z-index: 4;
+    }
   }
 
   ${({ $selected, $dark }) => $selected && `
@@ -94,7 +98,7 @@ const ColorSwatch = styled.button`
     z-index: 3;
   `}
 
-  ${({ $selected }) => $selected && `&:hover { transform: scale(1.35); }`}
+  ${({ $selected }) => $selected && `@media (hover: hover) and (pointer: fine) { &:hover { transform: scale(1.35); } }`}
 
   &:focus-visible {
     outline: 2px solid #fff;
@@ -206,39 +210,23 @@ function DieFace({ value, className = '' }) {
 }
 
 const cloudSources = [cloud1, cloud2, cloud3];
-function createCloud(id) {
-  const duration = 55 + Math.random() * 55;
+const cloudDuration = 96;
+function createCloud(id, index, count) {
   return {
     id,
     source: cloudSources[Math.floor(Math.random() * cloudSources.length)],
     size: 100 + Math.random() * 200,
     top: Math.random() * 130,
-    duration,
-    // Keep new clouds offscreen until their pan animation begins so they never
-    // appear suddenly midway across the sky.
-    delay: Math.random() * 8,
+    duration: cloudDuration,
+    delay: -((index + 0.5) / count) * cloudDuration,
     flipped: Math.random() < 0.5,
   };
 }
 function createClouds(count) {
-  return Array.from({ length: count }, (_, index) => createCloud(index));
+  return Array.from({ length: count }, (_, index) => createCloud(index, index, count));
 }
 function CloudBackground({ darkMode }) {
-  const [clouds, setClouds] = useState(() => createClouds(darkMode ? 4 : 10));
-  const cloudTarget = darkMode ? 4 : 10;
-  const finishCloud = (id) => {
-    setClouds((current) => {
-      const remaining = current.filter((cloud) => cloud.id !== id);
-      // Let excess clouds finish naturally at night, then refill to the light-mode target.
-      const refillCount = current.length <= cloudTarget
-        ? Math.max(0, cloudTarget - remaining.length)
-        : 0;
-      const replacements = Array.from({ length: refillCount }, (_, index) =>
-        createCloud(`${Date.now()}-${index}-${Math.random()}`)
-      );
-      return [...remaining, ...replacements];
-    });
-  };
+  const [clouds] = useState(() => createClouds(10));
   return <div className="cloud-background" aria-hidden="true">
     <div className="night-sky">
       <div className="stars stars-1" />
@@ -248,7 +236,7 @@ function CloudBackground({ darkMode }) {
       <div className="meteor m2" />
       <div className="meteor m3" />
     </div>
-    {clouds.map((cloud) => <div className="cloud-flight" key={cloud.id} onAnimationEnd={() => finishCloud(cloud.id)} style={{
+    {!darkMode && clouds.map((cloud) => <div className="cloud-flight" key={cloud.id} style={{
       '--cloud-size': `${cloud.size}px`,
       '--cloud-top': `${cloud.top}px`,
       '--cloud-duration': `${cloud.duration}s`,
@@ -293,8 +281,9 @@ function Action({ children, action, className = 'action', onClick }) {
 }
 function StyleArrow({ direction, onClick }) {
   const label = direction === 'left' ? 'Previous style' : 'Next style';
+  const icon = direction === 'left' ? leftArrowIcon : rightArrowIcon;
   return <button type="button" className={`style-arrow ${direction}`} onClick={onClick} aria-label={label}>
-    <span className="style-arrow-box" aria-hidden="true">{[0, 1].map((copy) => <span className="style-arrow-elem" key={copy}><svg viewBox="0 0 46 40"><path d="M46 20.038c0-.7-.3-1.5-.8-2.1l-16-17c-1.1-1-3.2-1.4-4.4-.3-1.2 1.1-1.2 3.3 0 4.4l11.3 11.9H3c-1.7 0-3 1.3-3 3s1.3 3 3 3h33.1l-11.3 11.9c-1 1-1.2 3.3 0 4.4 1.2 1.1 3.3.8 4.4-.3l16-17c.5-.5.8-1.1.8-1.9z" /></svg></span>)}</span>
+    <span className="style-arrow-icon" style={{ '--arrow-src': `url("${icon}")` }} aria-hidden="true" />
   </button>;
 }
 function ResourceCards({ qty, dark, onThemeChange }) {
@@ -445,11 +434,11 @@ function App() {
   if (state.screen === 'join') {
     screen = <section className="screen join-screen">
       <Header title="Meridia" />
-      <div className="join-name-row"><button type="button" className="join-player-icon" onClick={() => set({ steamPopup: true })} aria-label="Set Steam profile picture">{state.steamAvatar ? <PlayerAvatar name="Player" color={state.color} customHue={state.customHue} customValue={state.customValue} src={state.steamAvatar} /> : state.avatarChosen ? <PlayerAvatar name="Player" color={state.color} customHue={state.customHue} customValue={state.customValue} emoji={state.emoji} /> : <img className="default-user-icon" src={defaultUserIcon} alt="" />}<span className="player-icon-plus" aria-hidden="true">+</span></button><label className="field"><input maxLength="18" placeholder="Name" value={playerInput} onChange={(e) => setPlayerInput(e.target.value)} aria-label="Player name" /></label></div>
+      <div className="join-name-row"><button type="button" className="join-player-icon" onClick={() => set({ steamPopup: true })} aria-label="Set Steam profile picture">{state.steamAvatar ? <PlayerAvatar name="Player" color={state.color} customHue={state.customHue} customValue={state.customValue} src={state.steamAvatar} /> : state.avatarChosen ? <PlayerAvatar name="Player" color={state.color} customHue={state.customHue} customValue={state.customValue} emoji={state.emoji} /> : <span className="default-user-icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: defaultUserIcon }} />}</button><label className="field"><input maxLength="18" placeholder="Name" value={playerInput} onChange={(e) => setPlayerInput(e.target.value)} aria-label="Player name" /></label></div>
       <h2 className="section-label">Empire Color</h2>
       <SwatchGrid className="swatches">{colors.map((entry, i) => <ColorSwatch type="button" key={entry[1]} className="color-swatch" $selected={state.color === i} $dark={state.themeMode === 'dark'} $fill={i === 4 ? 'conic-gradient(from 0deg, #f33, #ff0, #3c6, #09f, #a3f, #f33)' : entry[0]} onClick={() => chooseColor(i)} aria-label={i === 4 ? 'Custom color' : `${entry[1]} color`} aria-pressed={state.color === i} />)}</SwatchGrid>
       <h2 className="section-label">Settlement Style</h2>
-      <div className="style-card"><StyleArrow direction="left" onClick={() => changeStyle(-1)} /><div><img className="style-house" src={joinHouseImage} alt="Settlement preview" /><div className="style-dots">● ● ● ● ● ● ●</div><div className="style-name">{styles[state.style][1]}</div></div><StyleArrow direction="right" onClick={() => changeStyle(1)} /></div>
+      <div className="style-card"><StyleArrow direction="left" onClick={() => changeStyle(-1)} /><div><img className="style-house" src={joinHouseImage} alt="Settlement preview" /><div className="style-dots" aria-label={`Style ${state.style + 1} of ${styles.length}`}>{styles.map((style, index) => <span key={style[1]} className={`style-dot${index === state.style ? ' active' : ''}`} aria-hidden="true">●</span>)}</div><div className="style-name">{styles[state.style][1]}</div></div><StyleArrow direction="right" onClick={() => changeStyle(1)} /></div>
       <Action onClick={() => { const name = playerInput.trim(); if (!name) { toast('Enter your name first'); return; } set({ name, avatarChosen: true, emoji: state.avatarChosen ? state.emoji : fallbackEmojis[Math.floor(Math.random() * fallbackEmojis.length)], screen: 'lobby' }); }}>Join Game</Action>
     </section>;
   } else if (state.screen === 'lobby') {
