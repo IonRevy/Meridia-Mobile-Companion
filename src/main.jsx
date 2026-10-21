@@ -210,23 +210,23 @@ function DieFace({ value, className = '' }) {
 }
 
 const cloudSources = [cloud1, cloud2, cloud3];
-const cloudDuration = 96;
-function createCloud(id, index, count) {
+function createCloud(id, index, count, duration) {
   return {
     id,
     source: cloudSources[Math.floor(Math.random() * cloudSources.length)],
     size: 100 + Math.random() * 200,
     top: Math.random() * 130,
-    duration: cloudDuration,
-    delay: -((index + 0.5) / count) * cloudDuration,
+    duration,
+    delay: -((index + 0.5) / count) * duration,
     flipped: Math.random() < 0.5,
   };
 }
-function createClouds(count) {
-  return Array.from({ length: count }, (_, index) => createCloud(index, index, count));
+function createClouds(count, duration) {
+  return Array.from({ length: count }, (_, index) => createCloud(index, index, count, duration));
 }
 function CloudBackground({ darkMode }) {
-  const [clouds] = useState(() => createClouds(10));
+  const [cloudSets] = useState(() => ({ day: createClouds(6, 96), night: createClouds(2, 180) }));
+  const clouds = darkMode ? cloudSets.night : cloudSets.day;
   return <div className="cloud-background" aria-hidden="true">
     <div className="night-sky">
       <div className="stars stars-1" />
@@ -236,7 +236,7 @@ function CloudBackground({ darkMode }) {
       <div className="meteor m2" />
       <div className="meteor m3" />
     </div>
-    {!darkMode && clouds.map((cloud) => <div className="cloud-flight" key={cloud.id} style={{
+    {clouds.map((cloud) => <div className={`cloud-flight${darkMode ? ' night-cloud-flight' : ''}`} key={cloud.id} style={{
       '--cloud-size': `${cloud.size}px`,
       '--cloud-top': `${cloud.top}px`,
       '--cloud-duration': `${cloud.duration}s`,

@@ -1248,85 +1248,11 @@ html,body {
   pointer-events: none;
   overflow: hidden;
 }
-.page-waves svg {
+.page-waves canvas {
   display: block;
-  width: 125%;
-  max-width: none;
+  width: 100%;
   height: 100%;
-  margin-left: -12.5%;
   filter: hue-rotate(var(--wave-hue-shift, 0deg));
-}
-.page-waves .wave-drift {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: wave-ripple 7s ease-in-out infinite alternate;
-}
-.page-waves .wave-pulse {
-  transform-box: fill-box;
-  transform-origin: center bottom;
-  animation-duration: 18s;
-  animation-delay: 0s;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-}
-.page-waves .wave-pulse.wave-1 {
-  animation-name: wave-pulse-top;
-}
-.page-waves .wave-pulse.wave-2 {
-  animation-name: wave-pulse-second;
-}
-.page-waves .wave-pulse.wave-3 {
-  animation-name: wave-pulse-third;
-}
-.page-waves .wave-pulse.wave-4 {
-  animation-name: wave-pulse-bottom;
-}
-@keyframes wave-ripple {
-  from {
-    transform: translateX(-36px);
-  }
-  to {
-    transform: translateX(36px);
-  }
-}
-@keyframes wave-pulse-top {
-  0%, 50%, 100% {
-    transform: scaleY(1);
-  }
-  30%, 70% {
-    transform: scaleY(.88);
-  }
-}
-@keyframes wave-pulse-second {
-  0%, 20%, 50%, 80%, 100% {
-    transform: scaleY(1);
-  }
-  36%, 64% {
-    transform: scaleY(.88);
-  }
-}
-@keyframes wave-pulse-third {
-  0%, 30%, 50%, 70%, 100% {
-    transform: scaleY(1);
-  }
-  42%, 58% {
-    transform: scaleY(.88);
-  }
-}
-@keyframes wave-pulse-bottom {
-  0%, 100% {
-    transform: scaleY(1);
-  }
-  50% {
-    transform: scaleY(.88);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .page-waves .wave-drift,
-  .page-waves .wave-pulse {
-    animation: none;
-    transform: none;
-  }
 }
 @media (max-width: 360px) {
   #app {
@@ -1785,6 +1711,10 @@ html[data-theme="dark"] .rolling-label {
 html[data-theme="dark"] .roll-die-face {
   color: hsl(var(--theme-hue,204) 58% 68%);
 }
+html[data-theme="dark"] .roll-display .rolling-total,
+html[data-theme="dark"] .roll-display .roll-result .total {
+  color: hsl(var(--theme-hue,204) 58% 68%);
+}
 @media (min-width: 700px) {
   .game-screen .roll-display-wrap,
   .trackpad-screen .roll-display-wrap {
@@ -2033,6 +1963,7 @@ html[data-theme="dark"] .cloud-background .meteor {
   animation: cloud-pan var(--cloud-duration) linear var(--cloud-delay) infinite;
   will-change: transform;
 }
+.night-cloud-flight { opacity: .48; }
 .cloud-shape {
   display: block;
   width: 100%;
